@@ -1,0 +1,108 @@
+с четным количеством 1 - дка
+
+{
+  "automaton": {
+    "type": "DFA",
+    "states": ["A", "B"],
+    "alphabet": ["0", "1"],
+    "start": "A",
+    "accepts": ["A"],
+    "transitions": {
+      "A": { "0": "A", "1": "B" },
+      "B": { "0": "B", "1": "A" }
+    }
+  }
+}
+
+
+01
+
+{
+  "automaton": {
+    "type": "NFA",
+    "states": ["A", "B", "C"],
+    "alphabet": ["0", "1"],
+    "start": "A",
+    "accepts": ["C"],
+    "transitions": {
+      "A": { "0": ["A", "B"], "1": ["A"] },
+      "B": { "1": ["C"] },
+      "C": {}
+    }
+  }
+}
+
+
+ε-НКА 01/10
+
+{
+  "automaton": {
+    "type": "E-NFA",
+    "states": ["A", "B", "C", "D", "E", "F"],
+    "alphabet": ["0", "1"],
+    "start": "A",
+    "accepts": ["F"],
+    "transitions": {
+      "A": { "ε": ["B", "D"] },
+
+      "B": { "0": ["C"] },
+      "C": { "1": ["F"] },
+
+      "D": { "1": ["E"] },
+      "E": { "0": ["F"] },
+
+      "F": {}
+    }
+  }
+}
+
+
+ошибочный дка
+{
+  "automaton": {
+    "type": "DFA",
+    "states": ["A", "B"],
+    "alphabet": ["0", "1"],
+    "start": "A",
+    "accepts": ["B"],
+    "transitions": {
+      "A": { "0": "A", "ε": "B" },
+      "B": { "1": "A" }
+    }
+  }
+}
+
+
+ошибочный нка
+{
+  "automaton": {
+    "type": "NFA",
+    "states": ["A", "B"],
+    "alphabet": ["0"],
+    "start": "A",
+    "accepts": ["B"],
+    "transitions": {
+      "A": { "0": ["C"] },
+      "B": {}
+    }
+  }
+}
+
+
+ε-НКА неполный
+
+{
+  "automaton": {
+    "type": "E-NFA",
+    "states": ["A", "B", "C"],
+    "alphabet": ["0", "1"],
+    "start": "A",
+    "accepts": ["C"],
+    "transitions": {
+      "A": { "ε": ["B"] },
+      "B": { "0": ["C"] },
+      "C": {}
+    }
+  }
+}
+
