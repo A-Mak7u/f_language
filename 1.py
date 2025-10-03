@@ -603,97 +603,21 @@ def build_full_automaton_from_subs(subs: Dict[str, ENFA]) -> ENFA:
     return union_enfas([subs[name] for name in order])
 
 
-def save_report(subs, big, tokens, idents, consts, token_traces, filename="report.md"):
-    import io, contextlib
-    from tabulate import tabulate
-
-    with open(filename, "w", encoding="utf-8") as f:
-        def w(s=""): f.write(s + "\n")
-
-        # δ-таблицы под-автоматов
-        for name, e in subs.items():
-            w(f"## δ-таблица автомата {name}\n")
-            buf = io.StringIO()
-            with contextlib.redirect_stdout(buf):
-                e.print_delta_table("", show_predicates=True)
-            w("```")
-            w(buf.getvalue().strip())
-            w("```")
-            w()
-
-        # δ-таблица объединённого автомата
-        w("## δ-таблица объединённого ε-NFA\n")
-        buf = io.StringIO()
-        with contextlib.redirect_stdout(buf):
-            big.print_delta_table("таблица", show_predicates=True)
-        w("```")
-        w(buf.getvalue().strip())
-        w("```")
-
-        # лексемы
-        w("\n## Лексемы\n")
-        w(tabulate([(t.category.value, t.value) for t in tokens],
-                   headers=["category","value"], tablefmt="github"))
-
-        # таблицы идентификаторов и констант
-        w("\n## Таблица идентификаторов\n")
-        w(tabulate([[s] for s in idents], headers=["identifier"], tablefmt="github"))
-        w("\n## Таблица констант\n")
-        w(tabulate([[s] for s in consts], headers=["integer"], tablefmt="github"))
-
-        # трассировки
-        w("\n## Пошаговые трассировки по токенам\n")
-        for i,(tok,tr) in enumerate(token_traces,1):
-            w(f"### [{i}] {tok.category.value}: '{tok.value}'\n")
-            if not tr:
-                w("(ε-принятие без чтения символов)\n")
-            else:
-                rows = [[st.pos, st.char, st.before, st.after] for st in tr]
-                w(tabulate(rows, headers=["pos","char","states_before","states_after"], tablefmt="github"))
-                w()
-
-    print(f"[ok] отчет сохранен в {filename}")
-
+   
 
 
 # =========================================
 # main: демонстрация на примере (как в задании)
 # =========================================
 
+
 if __name__ == "__main__":
-    # исходная программа (пример из задания; добавлены комментарии для демонстрации игнора)
     program = """\
-do while x < 10    // цикл увеличения
+do while x < 10
     x = x + 1;
 loop
 """
 
-    # 1) строим под-автоматы и печатаем их δ-таблицы (это важно для отчёта)
     subs = build_all_submachines()
-    subs["KW_do"].print_delta_table("δ-таблица: ключевое слово 'do'")
-    subs["KW_while"].print_delta_table("δ-таблица: ключевое слово 'while'")
-    subs["KW_loop"].print_delta_table("δ-таблица: ключевое слово 'loop'")
-    subs["IDENT"].print_delta_table("δ-таблица: идентификатор (letter (letter|digit)*)")
-    subs["NUMBER"].print_delta_table("δ-таблица: число ([+-]? digit+)")
-    subs["OPERATORS"].print_delta_table("δ-таблица: операторы (=,==,<,>,<=,>=,<>,+,-,*,/)")
-    subs["SEPARATORS"].print_delta_table("δ-таблица: разделители (;,(,))")
-
-    # 2) объединяем в один ε-nfa и печатаем объединённую δ-таблицу
     big = build_full_automaton_from_subs(subs)
-    big.print_delta_table("δ-таблица: объединённый ε-nfa", show_predicates=True)
-
-    # 3) токенизация с трассировками
-    tokens, idents, consts, token_traces = tokenize_with_traces(program, big)
-
-    # 4) печать результатов (лексемы и таблицы)
-    print_tokens(tokens)
-    print_tables(idents, consts)
-
-    # 5) печать пошаговой трассировки по каждому токену
-    print_token_traces(token_traces)
-
-    # 6) сохраняем .dot и (если возможно) .png с графом объединённого автомата
     draw_automaton(big, filename="enfa_full")
-
-    save_report(subs, big, tokens, idents, consts, token_traces, filename="report.md")
-
