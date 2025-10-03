@@ -604,27 +604,25 @@ def build_full_automaton_from_subs(subs: Dict[str, ENFA]) -> ENFA:
 
 
 def save_report(subs, big, tokens, idents, consts, token_traces, filename="report.md"):
+    import io, contextlib
+    from tabulate import tabulate
+
     with open(filename, "w", encoding="utf-8") as f:
         def w(s=""): f.write(s + "\n")
 
         # δ-таблицы под-автоматов
         for name, e in subs.items():
             w(f"## δ-таблица автомата {name}\n")
-            labels = []
-            # соберём таблицу строками так же как print_delta_table, но в Markdown
-            from io import StringIO
-            buf = StringIO()
-            e.print_delta_table("", show_predicates=True)
-            # у нас print_delta_table пишет сразу в stdout,
-            # поэтому для красоты лучше переписать аналог в отдельную функцию,
-            # но пока можно вызвать и перехватить — оставим как упражнение
-            # или временно не включать
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                e.print_delta_table("", show_predicates=True)
+            w("```")
+            w(buf.getvalue().strip())
+            w("```")
             w()
 
         # δ-таблица объединённого автомата
         w("## δ-таблица объединённого ε-NFA\n")
-        # проще всего: вызвать big.print_delta_table и перенаправить stdout в файл
-        import io, contextlib
         buf = io.StringIO()
         with contextlib.redirect_stdout(buf):
             big.print_delta_table("таблица", show_predicates=True)
@@ -655,6 +653,7 @@ def save_report(subs, big, tokens, idents, consts, token_traces, filename="repor
                 w()
 
     print(f"[ok] отчет сохранен в {filename}")
+
 
 
 # =========================================
